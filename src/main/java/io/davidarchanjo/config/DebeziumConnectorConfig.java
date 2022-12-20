@@ -12,8 +12,8 @@ public class DebeziumConnectorConfig {
 
     @Bean
     public io.debezium.config.Configuration customerConnector(Environment env) throws IOException {
-        var offsetStorageTempFile = File.createTempFile("offsets_", ".dat");
-        var dbHistoryTempFile = File.createTempFile("dbhistory_", ".dat");
+        File offsetStorageTempFile = File.createTempFile("offsets_", ".dat");
+        File dbHistoryTempFile = File.createTempFile("dbhistory_", ".dat");
         return io.debezium.config.Configuration.create()
             // https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-property-name
             .with("name", "customer_mysql_connector")

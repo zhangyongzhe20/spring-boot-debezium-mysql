@@ -39,29 +39,43 @@ public class DebeziumListener {
     }
 
     private void handleChangeEvent(RecordChangeEvent<SourceRecord> sourceRecordRecordChangeEvent) {
-        var sourceRecord = sourceRecordRecordChangeEvent.record();
+        SourceRecord sourceRecord = sourceRecordRecordChangeEvent.record();
         log.info("Key = {}, Value = {}", sourceRecord.key(), sourceRecord.value());
-        var sourceRecordChangeValue= (Struct) sourceRecord.value();
-        log.info("SourceRecordChangeValue = '{}'", sourceRecordChangeValue);
-        // if (sourceRecordChangeValue != null) {
-        //     Operation operation = Operation.forCode((String) sourceRecordChangeValue.get(OPERATION));
+        Struct sourceRecordChangeValue= (Struct) sourceRecord.value();
+//        log.info("SourceRecordChangeValue = '{}'", sourceRecordChangeValue);
+         if (sourceRecordChangeValue != null) {
+             try {
+                 Operation operation = Operation.forCode((String) sourceRecordChangeValue.get(OPERATION));
 
-        // Operation.READ operation events are always triggered when application initializes
-        // We're only interested in CREATE operation which are triggered upon new insert registry
-        //     if(operation != Operation.READ) {
-        //         String record = operation == Operation.DELETE ? BEFORE : AFTER; // Handling Update & Insert operations.
+                 // Operation.READ operation events are always triggered when application initializes
+                 // We're only interested in CREATE operation which are triggered upon new insert registry
+                 if (operation != Operation.READ) {
+                     String record =
+                             operation == Operation.DELETE ? BEFORE : AFTER; // Handling Update & Insert operations.
 
-        //         Struct struct = (Struct) sourceRecordChangeValue.get(record);
-        //         Map<String, Object> payload = struct.schema().fields().stream()
-        //             .map(Field::name)
-        //             .filter(fieldName -> struct.get(fieldName) != null)
-        //             .map(fieldName -> Pair.of(fieldName, struct.get(fieldName)))
-        //             .collect(toMap(Pair::getKey, Pair::getValue));
+                     Struct struct = (Struct) sourceRecordChangeValue.get(record);
+                     Map<String, Object> payload = struct.schema().fields().stream()
+                             .map(Field::name)
+                             .filter(fieldName -> struct.get(fieldName) != null)
+                             .map(fieldName -> Pair.of(fieldName, struct.get(fieldName)))
+                             .collect(toMap(Pair::getKey, Pair::getValue));
 
-        //         // this.customerService.replicateData(payload, operation);
-        //         log.info("Updated Data: {} with Operation: {}", payload, operation.name());
-        //     }
-        // }
+//                  this.customerService.replicateData(payload, operation);
+                     log.info("Updated Data: {} with Operation: {}", payload, operation.name());
+//
+//                     Struct sourceStruct = (Struct) sourceRecordChangeValue.get("source");
+//                     log.info("{}", sourceStruct.schema().fields());
+//                     Map<String, Object> payloadSource = sourceStruct.schema().fields().stream()
+//                             .map(Field::name)
+//                             .filter(fieldName -> struct.get(fieldName) != null)
+//                             .map(fieldName -> Pair.of(fieldName, struct.get(fieldName)))
+//                             .collect(toMap(Pair::getKey, Pair::getValue));
+//                     log.info("Data Source info: {}", payloadSource);
+                 }
+             } catch (Exception e){
+                 log.error(e.getMessage());
+             }
+         }
     }
 
     @PostConstruct
